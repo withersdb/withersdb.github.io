@@ -44,124 +44,79 @@
         <script>
             configureLogging();
 
-            $('#start').click(function() {
-                var urlParams = new URLSearchParams(window.location.search);
-                console.log(urlParams.get('stream'));
-                console.log('Extracting URL parameters');
-                var streamName = $('#streamName').val();
+            var urlParams = new URLSearchParams(window.location.search),
+                streamName = urlParams.get('stream');
 
-                // Step 1: Configure SDK Clients
-                var options = {
-                    accessKeyId: $('#accessKeyId').val(),
-                    secretAccessKey: $('#secretAccessKey').val(),
-                    sessionToken: $('#sessionToken').val() || undefined,
-                    region: $('#region').val(),
-                    endpoint: $('#endpoint').val() || undefined
-                }
-                var kinesisVideo = new AWS.KinesisVideo(options);
-                var kinesisVideoArchivedContent = new AWS.KinesisVideoArchivedMedia(options);
+            // Step 1: Configure SDK Clients
+            var options = {
+                accessKeyId: urlParams.get('access_key'),
+                secretAccessKey: urlParams.get('secret_key'),
+                sessionToken: undefined,
+                region: "us-east-1",
+                endpoint: undefined
+            }
+            var kinesisVideo = new AWS.KinesisVideo(options);
+            var kinesisVideoArchivedContent = new AWS.KinesisVideoArchivedMedia(options);
 
-                // Step 2: Get a data endpoint for the stream
-                console.log('Fetching data endpoint');
-                kinesisVideo.getDataEndpoint({
+            // Step 2: Get a data endpoint for the stream
+            console.log('Fetching data endpoint');
+            kinesisVideo.getDataEndpoint({
+                StreamName: streamName,
+                APIName: "GET_HLS_STREAMING_SESSION_URL"
+            }, function(err, response) {
+                if (err) { return console.error(err); }
+                console.log('Data endpoint: ' + response.DataEndpoint);
+                kinesisVideoArchivedContent.endpoint = new AWS.Endpoint(response.DataEndpoint);
+
+                // Step 3: Get an HLS Streaming Session URL
+                console.log('Fetching HLS Streaming Session URL');
+                kinesisVideoArchivedContent.getHLSStreamingSessionURL({
                     StreamName: streamName,
-                    APIName: "GET_HLS_STREAMING_SESSION_URL"
+                    PlaybackMode: "ON_DEMAND",
+                    HLSFragmentSelector: {
+                        FragmentSelectorType: "SERVER_TIMESTAMP",
+                        TimestampRange: {
+                            StartTimestamp: new Date('2018-12-22T18:18:59'),
+                            EndTimestamp: new Date('2018-12-22T18:20:00')
+                        }
+                    },
+                    DiscontinuityMode: "ALWAYS"
                 }, function(err, response) {
                     if (err) { return console.error(err); }
-                    console.log('Data endpoint: ' + response.DataEndpoint);
-                    kinesisVideoArchivedContent.endpoint = new AWS.Endpoint(response.DataEndpoint);
+                    console.log('HLS Streaming Session URL: ' + response.HLSStreamingSessionURL);
 
-                    // Step 3: Get an HLS Streaming Session URL
-                    console.log('Fetching HLS Streaming Session URL');
-                    kinesisVideoArchivedContent.getHLSStreamingSessionURL({
-                        StreamName: streamName,
-                        PlaybackMode: $('#playbackMode').val(),
-                        HLSFragmentSelector: {
-                            FragmentSelectorType: $('#fragmentSelectorType').val(),
-                            TimestampRange: $('#playbackMode').val() === "LIVE" ? undefined : {
-                                StartTimestamp: new Date($('#startTimestamp').val()),
-                                EndTimestamp: new Date($('#endTimestamp').val())
-                            }
-                        },
-                        DiscontinuityMode: $('#discontinuityMode').val(),
-                        MaxMediaPlaylistFragmentResults: parseInt($('#maxMediaPlaylistFragmentResults').val()),
-                        Expires: parseInt($('#expires').val())
-                    }, function(err, response) {
-                        if (err) { return console.error(err); }
-                        console.log('HLS Streaming Session URL: ' + response.HLSStreamingSessionURL);
+                    // Step 4: Give the URL to the video player.
+                    var playerName = "VideoJS";
+                    if (playerName === 'VideoJS') {
+                        var playerElement = $('#videojs');
+                        playerElement.show();
+                        var player = videojs('videojs');
+                        console.log('Created VideoJS Player');
 
-                        // Step 4: Give the URL to the video player.
-                        var playerName = $('#player').val();
-                        if (playerName === 'VideoJS') {
-                            var playerElement = $('#videojs');
-                            playerElement.show();
-                            var player = videojs('videojs');
-                            console.log('Created VideoJS Player');
+                        player.src({
+                            src: response.HLSStreamingSessionURL,
+                            type: 'application/x-mpegURL'
+                        });
+                        console.log('Set player source');
 
-                            player.src({
-                                src: response.HLSStreamingSessionURL,
-                                type: 'application/x-mpegURL'
-                            });
-                            console.log('Set player source');
+                        player.play();
+                        console.log('Starting playback');
+                    } else if (playerName === 'Shaka Player') {
+                        var playerElement = $('#shaka');
+                        playerElement.show();
 
-                            player.play();
+                        var player = new shaka.Player(playerElement[0]);
+                        console.log('Created Shaka Player');
+
+                        player.load(response.HLSStreamingSessionURL).then(function() {
                             console.log('Starting playback');
-                        } else if (playerName === 'Shaka Player') {
-                            var playerElement = $('#shaka');
-                            playerElement.show();
-
-                            var player = new shaka.Player(playerElement[0]);
-                            console.log('Created Shaka Player');
-
-                            player.load(response.HLSStreamingSessionURL).then(function() {
-                                console.log('Starting playback');
-                            });
-                            console.log('Set player source');
-                        }
-                    });
+                        });
+                        console.log('Set player source');
+                    }
                 });
 
                 $('.player').hide();
             });
-
-            // Read/Write all of the fields to/from localStorage so that fields are not lost on refresh.
-            [
-                'player',
-                'region',
-                'accessKeyId',
-                'secretAccessKey',
-                'sessionToken',
-                'endpoint',
-                'streamName',
-                'playbackMode',
-                'startTimestamp',
-                'endTimestamp',
-                'fragmentSelectorType',
-                'discontinuityMode',
-                'maxMediaPlaylistFragmentResults',
-                'expires'
-            ].forEach(function(field) {
-                var id = "#" + field;
-
-                // Read field from localStorage
-                try {
-                    var localStorageValue = localStorage.getItem(field);
-                    if (localStorageValue) { $(id).val(localStorageValue); }
-                } catch (e) { /* Don't use localStorage */ }
-
-                // Write field to localstorage on change event
-                $(id).change(function() {
-                    try {
-                        localStorage.setItem(field, $(id).val());
-                    } catch (e) { /* Don't use localStorage */ }
-                });
-            });
-
-            // Setup disabled/enabled state for timestamp fields
-            $('#playbackMode').change(function() {
-                updateTimestampFieldState();
-            });
-            updateTimestampFieldState();
 
             // Initially hide the player elements
             $('.player').hide();
