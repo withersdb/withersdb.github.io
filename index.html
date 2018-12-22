@@ -31,7 +31,7 @@
             // Step 1: Configure SDK Clients
             var options = {
                 accessKeyId: urlParams.get('access_key'),
-                secretAccessKey: urlParams.get('secret_key'),
+                secretAccessKey: decodeURI(urlParams.get('secret_key')),
                 sessionToken: undefined,
                 region: "us-east-1",
                 endpoint: undefined
@@ -57,8 +57,8 @@
                     HLSFragmentSelector: {
                         FragmentSelectorType: "SERVER_TIMESTAMP",
                         TimestampRange: {
-                            StartTimestamp: new Date(urlParams.get('start')),
-                            EndTimestamp: new Date(urlParams.get('end'))
+                            StartTimestamp: new Date(decodeURI(urlParams.get('start'))),
+                            EndTimestamp: new Date(decodeURI(urlParams.get('end')))
                         }
                     },
                     DiscontinuityMode: "ALWAYS"
