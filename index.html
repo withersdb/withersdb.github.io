@@ -46,7 +46,7 @@
 
             $('#start').click(function() {
                 var urlParams = new URLSearchParams(window.location.search)
-                console.log(urlParams.getAll('stream'))
+                console.log(urlParams.get('stream'))
                 var streamName = $('#streamName').val();
 
                 // Step 1: Configure SDK Clients
