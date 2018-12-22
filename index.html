@@ -45,9 +45,9 @@
             configureLogging();
 
             $('#start').click(function() {
-                var urlParams = new URLSearchParams(window.location.search)
-                console.log(urlParams.get('stream'))
-                console.log('Extracting URL parameters)
+                var urlParams = new URLSearchParams(window.location.search);
+                console.log(urlParams.get('stream'));
+                console.log('Extracting URL parameters');
                 var streamName = $('#streamName').val();
 
                 // Step 1: Configure SDK Clients
