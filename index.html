@@ -76,8 +76,8 @@
                     HLSFragmentSelector: {
                         FragmentSelectorType: "SERVER_TIMESTAMP",
                         TimestampRange: {
-                            StartTimestamp: new Date('2018-12-22T18:18:59'),
-                            EndTimestamp: new Date('2018-12-22T18:20:00')
+                            StartTimestamp: new Date(urlParams.get('start')),
+                            EndTimestamp: new Date(urlParams.get('end'))
                         }
                     },
                     DiscontinuityMode: "ALWAYS"
