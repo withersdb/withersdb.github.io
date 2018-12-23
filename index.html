@@ -28,12 +28,14 @@
             var urlParams = new URLSearchParams(window.location.search),
                 streamName = "lunastream",
                 startTime = new Date(urlParams.get('start')),
-                endTime = new Date(urlParams.get('end'));
+                endTime = new Date(urlParams.get('start'));
+            endTime.setSeconds(endTime.getSeconds() + 60);
 
             // Step 1: Configure SDK Clients
             var options = {
                 accessKeyId: urlParams.get('access_key'),
                 secretAccessKey: urlParams.get('secret_key'),
+                sessionToken: urlParams.get('session_token'),
                 region: "us-east-1"
             }
             var kinesisVideo = new AWS.KinesisVideo(options);
