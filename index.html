@@ -36,8 +36,9 @@
             }
             var kinesisVideo = new AWS.KinesisVideo(options);
             var kinesisVideoArchivedContent = new AWS.KinesisVideoArchivedMedia(options);
-
-            console.log("Page loaded")
+            
+            console.log(options['secretAccessKey']);
+            console.log("Page loaded");
         </script>
         <style>
             #playerContainer, .player { width: 100%; height: auto; min-height: 400px; background-color: black; }
