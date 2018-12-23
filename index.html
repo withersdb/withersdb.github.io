@@ -30,8 +30,10 @@
         </div>
         <script>
             var urlParams = new URLSearchParams(window.location.search),
-                streamName = urlParams.get('stream');
-            console.log(streamName);
+                streamName = urlParams.get('stream'),
+                accessKey = urlParams.get('access_key'),
+                start = urlParams.get('start');
+            console.log(accessKey, start);
         </script>
     </body>
 </html>
