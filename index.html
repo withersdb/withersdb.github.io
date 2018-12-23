@@ -36,9 +36,7 @@
             var options = {
                 accessKeyId: urlParams.get('access_key'),
                 secretAccessKey: urlParams.get('secret_key'),
-                sessionToken: undefined,
-                region: "us-east-1",
-                endpoint: undefined
+                region: "us-east-1"
             }
             var kinesisVideo = new AWS.KinesisVideo(options);
             var kinesisVideoArchivedContent = new AWS.KinesisVideoArchivedMedia(options);
@@ -46,7 +44,7 @@
             // Step 2: Get a data endpoint for the stream
             console.log('Fetching data endpoint');
             kinesisVideo.getDataEndpoint({
-                StreamName: streamName,
+                StreamName: "lunastream",
                 APIName: "GET_HLS_STREAMING_SESSION_URL"
             }, function(err, response) {
                 if (err) { return console.error(err); }
@@ -56,7 +54,7 @@
                 // Step 3: Get an HLS Streaming Session URL
                 console.log('Fetching HLS Streaming Session URL');
                 kinesisVideoArchivedContent.getHLSStreamingSessionURL({
-                    StreamName: streamName,
+                    StreamName: "lunastream",
                     PlaybackMode: "ON_DEMAND",
                     HLSFragmentSelector: {
                         FragmentSelectorType: "SERVER_TIMESTAMP",
@@ -75,9 +73,7 @@
                     console.log('Created VideoJS Player');
 
                     player.src({
-                        src:
-
-                        .HLSStreamingSessionURL,
+                        src: response.HLSStreamingSessionURL,
                         type: 'application/x-mpegURL'
                     });
                     console.log('Set player source');
