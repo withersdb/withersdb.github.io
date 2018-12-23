@@ -60,6 +60,22 @@
                         }
                     },
                     DiscontinuityMode: "ALWAYS"
+                }, function(err, response) {
+                    if (err) { return console.error(err); }
+                    console.log('HLS Streaming Session URL: ' + response.HLSStreamingSessionURL);
+
+                    // Step 4: Give the URL to the video player.
+                    var player = videojs('videojs');
+                    console.log('Created VideoJS Player');
+
+                    player.src({
+                        src: response.HLSStreamingSessionURL,
+                        type: 'application/x-mpegURL'
+                    });
+                    console.log('Set player source');
+
+                    player.play();
+                    console.log('Starting playback');                    
                 });               
             });
                 
