@@ -26,7 +26,9 @@
         </div>
         <script>
             var urlParams = new URLSearchParams(window.location.search),
-                streamName = "lunastream";
+                streamName = "lunastream",
+                startTime = new Date(urlParams.get('start')),
+                endTime = new Date(urlParams.get('end'));
 
             // Step 1: Configure SDK Clients
             var options = {
@@ -44,6 +46,21 @@
             }, function(err, response) {
                 console.log('Data endpoint: ' + response.DataEndpoint);
                 kinesisVideoArchivedContent.endpoint = new AWS.Endpoint(response.DataEndpoint);
+
+                // Step 3: Get an HLS Streaming Session URL
+                console.log('Fetching HLS Streaming Session URL');
+                kinesisVideoArchivedContent.getHLSStreamingSessionURL({
+                    StreamName: streamName,
+                    PlaybackMode: "ON_DEMAND",
+                    HLSFragmentSelector: {
+                        FragmentSelectorType: "SERVER_TIMESTAMP",
+                        TimestampRange: {
+                            StartTimestamp: startTime,
+                            EndTimestamp: endTime
+                        }
+                    },
+                    DiscontinuityMode: "ALWAYS"
+                }               
             });
                 
             console.log("Page loaded");
