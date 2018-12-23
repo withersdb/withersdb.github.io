@@ -37,7 +37,15 @@
             var kinesisVideo = new AWS.KinesisVideo(options);
             var kinesisVideoArchivedContent = new AWS.KinesisVideoArchivedMedia(options);
             
-            console.log(options['secretAccessKey']);
+            console.log('Fetching data endpoint');
+            kinesisVideo.getDataEndpoint({
+                StreamName: "lunastream",
+                APIName: "GET_HLS_STREAMING_SESSION_URL"
+            }, function(err, response) {
+                console.log('Data endpoint: ' + response.DataEndpoint);
+                kinesisVideoArchivedContent.endpoint = new AWS.Endpoint(response.DataEndpoint);
+            });
+                
             console.log("Page loaded");
         </script>
         <style>
