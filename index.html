@@ -21,10 +21,6 @@
                         <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.14.1/videojs-contrib-hls.js"></script>
 
                     </div>
-                    <h3 style="margin-top: 20px;">Logs</h3>
-                    <div class="card bg-light mb-3">
-                        <pre id="logs" class="card-body text-monospace" style="font-family: monospace; white-space: pre-wrap;"></pre>
-                    </div>
                 </div>
             </div>
         </div>
@@ -41,69 +37,6 @@
             var kinesisVideo = new AWS.KinesisVideo(options);
             var kinesisVideoArchivedContent = new AWS.KinesisVideoArchivedMedia(options);
 
-            // Step 2: Get a data endpoint for the stream
-            console.log('Fetching data endpoint');
-            kinesisVideo.getDataEndpoint({
-                StreamName: "lunastream",
-                APIName: "GET_HLS_STREAMING_SESSION_URL"
-            }, function(err, response) {
-                if (err) { return console.error(err); }
-                console.log('Data endpoint: ' + response.DataEndpoint);
-                kinesisVideoArchivedContent.endpoint = new AWS.Endpoint(response.DataEndpoint);
-
-                // Step 3: Get an HLS Streaming Session URL
-                console.log('Fetching HLS Streaming Session URL');
-                kinesisVideoArchivedContent.getHLSStreamingSessionURL({
-                    StreamName: "lunastream",
-                    PlaybackMode: "ON_DEMAND",
-                    HLSFragmentSelector: {
-                        FragmentSelectorType: "SERVER_TIMESTAMP",
-                        TimestampRange: {
-                            StartTimestamp: new Date(urlParams.get('start')),
-                            EndTimestamp: new Date(urlParams.get('end'))
-                        }
-                    },
-                    DiscontinuityMode: "ALWAYS"
-                }, function(err, response) {
-                    if (err) { return console.error(err); }
-                    console.log('HLS Streaming Session URL: ' + response.HLSStreamingSessionURL);
-
-                    // Step 4: Give the URL to the video player.
-                    var player = videojs('videojs');
-                    console.log('Created VideoJS Player');
-
-                    player.src({
-                        src: response.HLSStreamingSessionURL,
-                        type: 'application/x-mpegURL'
-                    });
-                    console.log('Set player source');
-
-                    player.play();
-                    console.log('Starting playback');
-            });
-
-            function configureLogging() {
-                console._error = console.error;
-                console.error = function(messages) {
-                    log('ERROR', Array.prototype.slice.call(arguments));
-                    console._error.apply(this, arguments);
-                }
-                console._log = console.log;
-                console.log = function(messages) {
-                    log('INFO', Array.prototype.slice.call(arguments));
-                    console._log.apply(this, arguments);
-                }
-                function log(level, messages) {
-                    var text = '';
-                    for (message of messages) {
-                        if (typeof message === 'object') { message = JSON.stringify(message, null, 2); }
-                        text += ' ' + message;
-                    }
-                    $('#logs').append($('<div>').text('[' + level + ']' + text + '\n'));
-                }
-            }
-
-            configureLogging();
             console.log("Page loaded")
         </script>
         <style>
